@@ -1,4 +1,4 @@
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
@@ -34,13 +34,32 @@ async function run() {
             res.send(result);
         });
 
-        //Find All tasks
+        //Find all tasks or all tasks of user
         app.get("/tasks", async (req, res) => {
-            const query = {};
+            let query = {};
+            if (req.query.addedBy) {
+                const addedBy = req.query.addedBy;
+                query = { addedBy };
+            }
             const cursor = taskCollections.find(query);
             const tasks = await cursor.toArray();
             res.send(tasks);
         });
+
+        //Deleting a task
+        app.delete("/tasks/:id", async (req, res) => {
+            const taskId = req.params.id;
+            console.log(taskId);
+            try {
+                const filter = { _id: ObjectId(taskId) };
+                console.log("filter",filter)
+                const result = await taskCollections.deleteOne(filter);
+                res.send(result);
+            } catch {
+                res.status(400).send({ message: "invalid task id" });
+            }
+        });
+        //end
     } finally {
         //   await client.close();
     }
