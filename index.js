@@ -46,13 +46,34 @@ async function run() {
             res.send(tasks);
         });
 
+        //updating a task
+        app.put("/tasks/:id" , async (req, res) => {
+            const taskId = req.params.id;
+            try {
+                const updatedTask = req.body;
+                const filter = { _id: ObjectId(taskId) };
+                const updateDoc = {
+                    $set: {
+                        ...updatedTask,
+                    },
+                };
+                const options = { upsert: true };
+                const result = await taskCollections.updateOne(
+                    filter,
+                    updateDoc,
+                    options
+                );
+                res.send(result);
+            } catch {
+                res.status(400).send({ message: "invalid task id" });
+            }
+        });
+
         //Deleting a task
         app.delete("/tasks/:id", async (req, res) => {
             const taskId = req.params.id;
-            console.log(taskId);
             try {
                 const filter = { _id: ObjectId(taskId) };
-                console.log("filter",filter)
                 const result = await taskCollections.deleteOne(filter);
                 res.send(result);
             } catch {
